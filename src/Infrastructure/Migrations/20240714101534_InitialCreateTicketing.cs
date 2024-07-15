@@ -6,13 +6,13 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialCreateTicketing : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateSequence(
-                name: "customer_hilo",
+                name: "buyer_hilo",
                 incrementBy: 10);
 
             migrationBuilder.CreateSequence(
@@ -40,6 +40,10 @@ namespace Infrastructure.Migrations
                 incrementBy: 10);
 
             migrationBuilder.CreateSequence(
+                name: "section_hilo",
+                incrementBy: 10);
+
+            migrationBuilder.CreateSequence(
                 name: "ticket_hilo",
                 incrementBy: 10);
 
@@ -48,18 +52,28 @@ namespace Infrastructure.Migrations
                 incrementBy: 10);
 
             migrationBuilder.CreateTable(
-                name: "Customers",
+                name: "Baskets",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false),
-                    FirstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    BuyerId = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Customers", x => x.Id);
+                    table.PrimaryKey("PK_Baskets", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Buyers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false),
+                    IdentityGuid = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Buyers", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -78,6 +92,25 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Orders",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    BuyerId = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    OrderDate = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    ShipToAddress_Street = table.Column<string>(type: "nvarchar(180)", maxLength: 180, nullable: false),
+                    ShipToAddress_City = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    ShipToAddress_State = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: false),
+                    ShipToAddress_Country = table.Column<string>(type: "nvarchar(90)", maxLength: 90, nullable: false),
+                    ShipToAddress_ZipCode = table.Column<string>(type: "nvarchar(18)", maxLength: 18, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Orders", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Venues",
                 columns: table => new
                 {
@@ -89,6 +122,70 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Venues", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "BasketItems",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    EventId = table.Column<int>(type: "int", nullable: false),
+                    BasketId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BasketItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_BasketItems_Baskets_BasketId",
+                        column: x => x.BasketId,
+                        principalTable: "Baskets",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PaymentMethod",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Alias = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CardId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Last4 = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    BuyerId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PaymentMethod", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PaymentMethod_Buyers_BuyerId",
+                        column: x => x.BuyerId,
+                        principalTable: "Buyers",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OrderItems",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ItemOrdered_EventId = table.Column<int>(type: "int", nullable: false),
+                    ItemOrdered_EventName = table.Column<string>(type: "nvarchar(75)", maxLength: 75, nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Units = table.Column<int>(type: "int", nullable: false),
+                    OrderId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrderItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OrderItems_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -109,8 +206,7 @@ namespace Infrastructure.Migrations
                         name: "FK_Events_Venues_VenueId",
                         column: x => x.VenueId,
                         principalTable: "Venues",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -128,8 +224,25 @@ namespace Infrastructure.Migrations
                         name: "FK_Manifests_Venues_VenueId",
                         column: x => x.VenueId,
                         principalTable: "Venues",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Sections",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    VenueId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Sections", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Sections_Venues_VenueId",
+                        column: x => x.VenueId,
+                        principalTable: "Venues",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -150,8 +263,7 @@ namespace Infrastructure.Migrations
                         name: "FK_Offers_Events_EventId",
                         column: x => x.EventId,
                         principalTable: "Events",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -162,9 +274,9 @@ namespace Infrastructure.Migrations
                     SeatType = table.Column<int>(type: "int", nullable: false),
                     Row = table.Column<string>(type: "nvarchar(25)", maxLength: 25, nullable: true),
                     Number = table.Column<int>(type: "int", nullable: false),
-                    Section = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
                     IsAvailable = table.Column<bool>(type: "bit", nullable: false),
-                    ManifestId = table.Column<int>(type: "int", nullable: false)
+                    ManifestId = table.Column<int>(type: "int", nullable: false),
+                    SectionId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -173,8 +285,12 @@ namespace Infrastructure.Migrations
                         name: "FK_Seats_Manifests_ManifestId",
                         column: x => x.ManifestId,
                         principalTable: "Manifests",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Seats_Sections_SectionId",
+                        column: x => x.SectionId,
+                        principalTable: "Sections",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -193,8 +309,7 @@ namespace Infrastructure.Migrations
                         name: "FK_Prices_Offers_OfferId",
                         column: x => x.OfferId,
                         principalTable: "Offers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -205,45 +320,45 @@ namespace Infrastructure.Migrations
                     PurchaseDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsPrinted = table.Column<bool>(type: "bit", nullable: false),
                     EventId = table.Column<int>(type: "int", nullable: false),
-                    CustomerId = table.Column<int>(type: "int", nullable: false),
-                    SeatId = table.Column<int>(type: "int", nullable: false),
+                    BuyerId = table.Column<int>(type: "int", nullable: false),
                     PricesId = table.Column<int>(type: "int", nullable: false),
-                    VenueId = table.Column<int>(type: "int", nullable: false)
+                    VenueId = table.Column<int>(type: "int", nullable: false),
+                    SeatId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Tickets", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Tickets_Customers_CustomerId",
-                        column: x => x.CustomerId,
-                        principalTable: "Customers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        name: "FK_Tickets_Buyers_BuyerId",
+                        column: x => x.BuyerId,
+                        principalTable: "Buyers",
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Tickets_Events_EventId",
                         column: x => x.EventId,
                         principalTable: "Events",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Tickets_Prices_PricesId",
                         column: x => x.PricesId,
                         principalTable: "Prices",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Tickets_Seats_SeatId",
                         column: x => x.SeatId,
                         principalTable: "Seats",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Tickets_Venues_VenueId",
                         column: x => x.VenueId,
                         principalTable: "Venues",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BasketItems_BasketId",
+                table: "BasketItems",
+                column: "BasketId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Events_VenueId",
@@ -261,6 +376,16 @@ namespace Infrastructure.Migrations
                 column: "EventId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_OrderItems_OrderId",
+                table: "OrderItems",
+                column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PaymentMethod_BuyerId",
+                table: "PaymentMethod",
+                column: "BuyerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Prices_OfferId",
                 table: "Prices",
                 column: "OfferId");
@@ -271,9 +396,19 @@ namespace Infrastructure.Migrations
                 column: "ManifestId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tickets_CustomerId",
+                name: "IX_Seats_SectionId",
+                table: "Seats",
+                column: "SectionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sections_VenueId",
+                table: "Sections",
+                column: "VenueId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tickets_BuyerId",
                 table: "Tickets",
-                column: "CustomerId");
+                column: "BuyerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tickets_EventId",
@@ -300,13 +435,28 @@ namespace Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "BasketItems");
+
+            migrationBuilder.DropTable(
                 name: "EventManagers");
+
+            migrationBuilder.DropTable(
+                name: "OrderItems");
+
+            migrationBuilder.DropTable(
+                name: "PaymentMethod");
 
             migrationBuilder.DropTable(
                 name: "Tickets");
 
             migrationBuilder.DropTable(
-                name: "Customers");
+                name: "Baskets");
+
+            migrationBuilder.DropTable(
+                name: "Orders");
+
+            migrationBuilder.DropTable(
+                name: "Buyers");
 
             migrationBuilder.DropTable(
                 name: "Prices");
@@ -321,13 +471,16 @@ namespace Infrastructure.Migrations
                 name: "Manifests");
 
             migrationBuilder.DropTable(
+                name: "Sections");
+
+            migrationBuilder.DropTable(
                 name: "Events");
 
             migrationBuilder.DropTable(
                 name: "Venues");
 
             migrationBuilder.DropSequence(
-                name: "customer_hilo");
+                name: "buyer_hilo");
 
             migrationBuilder.DropSequence(
                 name: "event_hilo");
@@ -346,6 +499,9 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropSequence(
                 name: "seat_hilo");
+
+            migrationBuilder.DropSequence(
+                name: "section_hilo");
 
             migrationBuilder.DropSequence(
                 name: "ticket_hilo");

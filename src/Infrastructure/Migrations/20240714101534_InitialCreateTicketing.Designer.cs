@@ -12,8 +12,8 @@ using TicketingApp.Infrastructure.Data;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(TicketingContext))]
-    [Migration("20240705123328_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20240714101534_InitialCreateTicketing")]
+    partial class InitialCreateTicketing
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.HasSequence("customer_hilo")
+            modelBuilder.HasSequence("buyer_hilo")
                 .IncrementsBy(10);
 
             modelBuilder.HasSequence("event_hilo")
@@ -46,42 +46,103 @@ namespace Infrastructure.Migrations
             modelBuilder.HasSequence("seat_hilo")
                 .IncrementsBy(10);
 
+            modelBuilder.HasSequence("section_hilo")
+                .IncrementsBy(10);
+
             modelBuilder.HasSequence("ticket_hilo")
                 .IncrementsBy(10);
 
             modelBuilder.HasSequence("venue_hilo")
                 .IncrementsBy(10);
 
-            modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.Customer", b =>
+            modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.BasketAggregate.Basket", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseHiLo(b.Property<int>("Id"), "customer_hilo");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("PasswordHash")
+                    b.Property<string>("BuyerId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Customers");
+                    b.ToTable("Baskets");
+                });
+
+            modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.BasketAggregate.BasketItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BasketId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EventId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BasketId");
+
+                    b.ToTable("BasketItems");
+                });
+
+            modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.BuyerAggregate.Buyer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseHiLo(b.Property<int>("Id"), "buyer_hilo");
+
+                    b.Property<string>("IdentityGuid")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Buyers");
+                });
+
+            modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.BuyerAggregate.PaymentMethod", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Alias")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("BuyerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CardId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Last4")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BuyerId");
+
+                    b.ToTable("PaymentMethod");
                 });
 
             modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.Event", b =>
@@ -207,6 +268,51 @@ namespace Infrastructure.Migrations
                     b.ToTable("Offers");
                 });
 
+            modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.OrderAggregate.Order", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BuyerId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTimeOffset>("OrderDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.OrderAggregate.OrderItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Units")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderItems");
+                });
+
             modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.Prices", b =>
                 {
                     b.Property<int>("Id")
@@ -256,16 +362,39 @@ namespace Infrastructure.Migrations
                     b.Property<int>("SeatType")
                         .HasColumnType("int");
 
-                    b.Property<string>("Section")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                    b.Property<int>("SectionId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ManifestId");
 
+                    b.HasIndex("SectionId");
+
                     b.ToTable("Seats");
+                });
+
+            modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.Section", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseHiLo(b.Property<int>("Id"), "section_hilo");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("VenueId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VenueId");
+
+                    b.ToTable("Sections");
                 });
 
             modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.Ticket", b =>
@@ -276,7 +405,7 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseHiLo(b.Property<int>("Id"), "ticket_hilo");
 
-                    b.Property<int>("CustomerId")
+                    b.Property<int>("BuyerId")
                         .HasColumnType("int");
 
                     b.Property<int>("EventId")
@@ -299,7 +428,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CustomerId");
+                    b.HasIndex("BuyerId");
 
                     b.HasIndex("EventId");
 
@@ -338,12 +467,29 @@ namespace Infrastructure.Migrations
                     b.ToTable("Venues");
                 });
 
+            modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.BasketAggregate.BasketItem", b =>
+                {
+                    b.HasOne("TicketingApp.ApplicationCore.Entities.BasketAggregate.Basket", null)
+                        .WithMany("Items")
+                        .HasForeignKey("BasketId")
+                        .OnDelete(DeleteBehavior.ClientCascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.BuyerAggregate.PaymentMethod", b =>
+                {
+                    b.HasOne("TicketingApp.ApplicationCore.Entities.BuyerAggregate.Buyer", null)
+                        .WithMany("PaymentMethods")
+                        .HasForeignKey("BuyerId")
+                        .OnDelete(DeleteBehavior.ClientCascade);
+                });
+
             modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.Event", b =>
                 {
                     b.HasOne("TicketingApp.ApplicationCore.Entities.Venue", "Venue")
                         .WithMany()
                         .HasForeignKey("VenueId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
                     b.Navigation("Venue");
@@ -354,7 +500,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("TicketingApp.ApplicationCore.Entities.Venue", "Venue")
                         .WithMany()
                         .HasForeignKey("VenueId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
                     b.Navigation("Venue");
@@ -365,10 +511,86 @@ namespace Infrastructure.Migrations
                     b.HasOne("TicketingApp.ApplicationCore.Entities.Event", "Event")
                         .WithMany()
                         .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
                     b.Navigation("Event");
+                });
+
+            modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.OrderAggregate.Order", b =>
+                {
+                    b.OwnsOne("TicketingApp.ApplicationCore.Entities.OrderAggregate.Address", "ShipToAddress", b1 =>
+                        {
+                            b1.Property<int>("OrderId")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("City")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)");
+
+                            b1.Property<string>("Country")
+                                .IsRequired()
+                                .HasMaxLength(90)
+                                .HasColumnType("nvarchar(90)");
+
+                            b1.Property<string>("State")
+                                .IsRequired()
+                                .HasMaxLength(60)
+                                .HasColumnType("nvarchar(60)");
+
+                            b1.Property<string>("Street")
+                                .IsRequired()
+                                .HasMaxLength(180)
+                                .HasColumnType("nvarchar(180)");
+
+                            b1.Property<string>("ZipCode")
+                                .IsRequired()
+                                .HasMaxLength(18)
+                                .HasColumnType("nvarchar(18)");
+
+                            b1.HasKey("OrderId");
+
+                            b1.ToTable("Orders");
+
+                            b1.WithOwner()
+                                .HasForeignKey("OrderId");
+                        });
+
+                    b.Navigation("ShipToAddress")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.OrderAggregate.OrderItem", b =>
+                {
+                    b.HasOne("TicketingApp.ApplicationCore.Entities.OrderAggregate.Order", null)
+                        .WithMany("OrderItems")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.ClientCascade);
+
+                    b.OwnsOne("TicketingApp.ApplicationCore.Entities.OrderAggregate.EventOrdered", "ItemOrdered", b1 =>
+                        {
+                            b1.Property<int>("OrderItemId")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("EventId")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("EventName")
+                                .IsRequired()
+                                .HasMaxLength(75)
+                                .HasColumnType("nvarchar(75)");
+
+                            b1.HasKey("OrderItemId");
+
+                            b1.ToTable("OrderItems");
+
+                            b1.WithOwner()
+                                .HasForeignKey("OrderItemId");
+                        });
+
+                    b.Navigation("ItemOrdered")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.Prices", b =>
@@ -376,7 +598,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("TicketingApp.ApplicationCore.Entities.Offer", "Offer")
                         .WithMany()
                         .HasForeignKey("OfferId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
                     b.Navigation("Offer");
@@ -387,45 +609,64 @@ namespace Infrastructure.Migrations
                     b.HasOne("TicketingApp.ApplicationCore.Entities.Manifest", "Manifest")
                         .WithMany()
                         .HasForeignKey("ManifestId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.ClientCascade)
+                        .IsRequired();
+
+                    b.HasOne("TicketingApp.ApplicationCore.Entities.Section", "Section")
+                        .WithMany()
+                        .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
                     b.Navigation("Manifest");
+
+                    b.Navigation("Section");
+                });
+
+            modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.Section", b =>
+                {
+                    b.HasOne("TicketingApp.ApplicationCore.Entities.Venue", "Venue")
+                        .WithMany()
+                        .HasForeignKey("VenueId")
+                        .OnDelete(DeleteBehavior.ClientCascade)
+                        .IsRequired();
+
+                    b.Navigation("Venue");
                 });
 
             modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.Ticket", b =>
                 {
-                    b.HasOne("TicketingApp.ApplicationCore.Entities.Customer", "Customer")
+                    b.HasOne("TicketingApp.ApplicationCore.Entities.BuyerAggregate.Buyer", "Buyer")
                         .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasForeignKey("BuyerId")
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
                     b.HasOne("TicketingApp.ApplicationCore.Entities.Event", "Event")
                         .WithMany()
                         .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
                     b.HasOne("TicketingApp.ApplicationCore.Entities.Prices", "Prices")
                         .WithMany()
                         .HasForeignKey("PricesId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
                     b.HasOne("TicketingApp.ApplicationCore.Entities.Seat", "Seat")
                         .WithMany()
                         .HasForeignKey("SeatId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
                     b.HasOne("TicketingApp.ApplicationCore.Entities.Venue", "Venue")
                         .WithMany()
                         .HasForeignKey("VenueId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
-                    b.Navigation("Customer");
+                    b.Navigation("Buyer");
 
                     b.Navigation("Event");
 
@@ -434,6 +675,21 @@ namespace Infrastructure.Migrations
                     b.Navigation("Seat");
 
                     b.Navigation("Venue");
+                });
+
+            modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.BasketAggregate.Basket", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.BuyerAggregate.Buyer", b =>
+                {
+                    b.Navigation("PaymentMethods");
+                });
+
+            modelBuilder.Entity("TicketingApp.ApplicationCore.Entities.OrderAggregate.Order", b =>
+                {
+                    b.Navigation("OrderItems");
                 });
 #pragma warning restore 612, 618
         }

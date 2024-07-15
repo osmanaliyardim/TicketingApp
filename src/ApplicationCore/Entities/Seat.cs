@@ -11,13 +11,15 @@ public class Seat : BaseEntity
 
     public int Number { get; set; }
 
-    public string Section { get; set; }
-
     public bool IsAvailable { get; set; }
 
     public int ManifestId { get; set; }
 
     public Manifest Manifest { get; set; }
+
+    public int SectionId { get; set; }
+
+    public Section Section { get; set; }
 }
 
 public enum SeatTypes { Row, GeneralAdmission }

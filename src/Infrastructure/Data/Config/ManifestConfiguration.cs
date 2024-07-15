@@ -8,17 +8,17 @@ public class ManifestConfiguration : IEntityTypeConfiguration<Manifest>
 {
     public void Configure(EntityTypeBuilder<Manifest> builder)
     {
-        builder.HasKey(t => t.Id);
+        builder.HasKey(m => m.Id);
 
-        builder.Property(t => t.Id)
+        builder.Property(m => m.Id)
            .UseHiLo("manifest_hilo")
            .IsRequired();
 
-        builder.Property(t => t.SeatMap)
+        builder.Property(m => m.SeatMap)
             .IsRequired()
             .HasMaxLength(750);
 
-        builder.HasOne(t => t.Venue)
+        builder.HasOne(m => m.Venue)
             .WithMany()
             .HasForeignKey(ci => ci.VenueId);
     }

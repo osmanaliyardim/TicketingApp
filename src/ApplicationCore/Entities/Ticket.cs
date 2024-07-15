@@ -1,4 +1,6 @@
-﻿namespace TicketingApp.ApplicationCore.Entities;
+﻿using TicketingApp.ApplicationCore.Entities.BuyerAggregate;
+
+namespace TicketingApp.ApplicationCore.Entities;
 
 public class Ticket : BaseEntity
 {
@@ -8,9 +10,7 @@ public class Ticket : BaseEntity
 
     public int EventId { get; set; }
 
-    public int CustomerId { get; set; }
-
-    public int SeatId { get; set; }
+    public int BuyerId { get; set; }
 
     public int PricesId { get; set; }
 
@@ -18,11 +18,13 @@ public class Ticket : BaseEntity
 
     public Event Event { get; set; }
 
-    public Customer Customer { get; set; }
-
-    public Seat Seat { get; set; }
+    public Buyer Buyer { get; set; }
 
     public Prices Prices { get; set; }
 
     public Venue Venue { get; set; }
+
+    public Seat Seat { get; set; }
+
+    public int SeatId { get; set; }
 }

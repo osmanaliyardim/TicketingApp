@@ -1,5 +1,5 @@
 ﻿using Ardalis.Specification.EntityFrameworkCore;
-using TicketingApp.Core.Interfaces;
+using TicketingApp.ApplicationCore.Interfaces;
 
 namespace TicketingApp.Infrastructure.Data;
 

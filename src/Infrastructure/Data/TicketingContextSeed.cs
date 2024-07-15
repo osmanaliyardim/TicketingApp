@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using TicketingApp.ApplicationCore.Entities;
+using TicketingApp.ApplicationCore.Entities.BuyerAggregate;
 
 namespace TicketingApp.Infrastructure.Data;
 
@@ -13,14 +14,15 @@ public class TicketingContextSeed
         var retryForAvailability = retry;
         try
         {
-            if (ticketingContext.Database.IsSqlServer())
-            {
-                ticketingContext.Database.Migrate();
-            }
-
             if (!await ticketingContext.Venues.AnyAsync())
             {
                 await ticketingContext.Venues.AddRangeAsync(GetPreconfiguredVenues());
+                await ticketingContext.SaveChangesAsync();
+            }
+
+            if (!await ticketingContext.Sections.AnyAsync())
+            {
+                await ticketingContext.Sections.AddRangeAsync(GetPreconfiguredSections());
                 await ticketingContext.SaveChangesAsync();
             }
 
@@ -54,9 +56,15 @@ public class TicketingContextSeed
                 await ticketingContext.SaveChangesAsync();
             }
 
-            if (!await ticketingContext.Customers.AnyAsync())
+            //if (!await ticketingContext.PaymentMethods.AnyAsync())
+            //{
+            //    await ticketingContext.PaymentMethods.AddRangeAsync(GetPreconfiguredPaymentMethods());
+            //    await ticketingContext.SaveChangesAsync();
+            //}
+
+            if (!await ticketingContext.Buyers.AnyAsync())
             {
-                await ticketingContext.Customers.AddRangeAsync(GetPreconfiguredCustomers());
+                await ticketingContext.Buyers.AddRangeAsync(GetPreconfiguredBuyers());
                 await ticketingContext.SaveChangesAsync();
             }
 
@@ -68,7 +76,7 @@ public class TicketingContextSeed
 
             if (!await ticketingContext.Tickets.AnyAsync())
             {
-                await ticketingContext.Tickets.AddRangeAsync(GetPreconfiguredTickets());
+                await ticketingContext.Tickets.AddRangeAsync(GetPreconfiguredTickets(ticketingContext));
                 await ticketingContext.SaveChangesAsync();
             }
         }
@@ -97,8 +105,8 @@ public class TicketingContextSeed
     {
         return new List<Event>
             {
-                new Event { Name = "Concert X", VenueId = 1, Date = new DateTime(2024, 8, 1), Time = new TimeSpan(19, 0, 0), Description = "Concert X by Band Y" },
-                new Event { Name = "Sports Game Z", VenueId = 2, Date = new DateTime(2024, 8, 15), Time = new TimeSpan(18, 0, 0), Description = "Game Z Championship" },
+                new Event("Concert X by Band Y", "Concert X", new DateTime(2024, 8, 1), new TimeSpan(19, 0, 0), 1),
+                new Event("Game Z Championship", "Sports Game Z", new DateTime(2024, 8, 15), new TimeSpan(18, 0, 0), 2)
             };
     }
 
@@ -111,30 +119,19 @@ public class TicketingContextSeed
             };
     }
 
-    private static IEnumerable<Seat> GetPreconfiguredSeats()
-    {
-        return new List<Seat>
-            {
-                new Seat { ManifestId = 1, SeatType = SeatTypes.Row, Row = "A", Number = 1, Section = "1", IsAvailable = true },
-                new Seat { ManifestId = 1, SeatType = SeatTypes.GeneralAdmission, Section = "GA", IsAvailable = true },
-                new Seat { ManifestId = 2, SeatType = SeatTypes.Row, Row = "B", Number = 2, Section = "2", IsAvailable = true },
-                new Seat { ManifestId = 2, SeatType = SeatTypes.GeneralAdmission, Section = "GA", IsAvailable = true },
-            };
-    }
-
     private static IEnumerable<Offer> GetPreconfiguredOffers()
     {
         return new List<Offer>
             {
                 new Offer { EventId = 1, Description = "Early Bird Offer", StartDate = DateTime.Now, EndDate = DateTime.Now.AddMonths(1), Conditions = "{ 'eligibility': { 'min_tickets': 1, 'max_tickets': 4 }, 'discount': 10 }" },
                 new Offer { EventId = 2, Description = "Group Discount", StartDate = DateTime.Now, EndDate = DateTime.Now.AddMonths(1), Conditions = "{ 'eligibility': { 'min_tickets': 5, 'max_tickets': 10 }, 'discount': 15 }" },
-        };
+            };
     }
 
     private static IEnumerable<Prices> GetPreconfiguredPrices()
     {
         return new List<Prices>
-        {
+            {
                 new Prices { OfferId = 1, Category = Categories.Adult, Price = 50.00m },
                 new Prices { OfferId = 1, Category = Categories.Child, Price = 30.00m },
                 new Prices { OfferId = 2, Category = Categories.Adult, Price = 70.00m },
@@ -142,12 +139,29 @@ public class TicketingContextSeed
             };
     }
 
-    private static IEnumerable<Customer> GetPreconfiguredCustomers()
+    //private static IEnumerable<PaymentMethod> GetPreconfiguredPaymentMethods()
+    //{
+    //    return new List<PaymentMethod>
+    //        {
+    //             new PaymentMethod("777", "1234567891234567", "4567"),
+    //             new PaymentMethod("555", "1231237891237890", "7890"),
+    //             new PaymentMethod("666", "4564567891233456", "3456")
+    //        };
+    //}
+
+    private static IEnumerable<Buyer> GetPreconfiguredBuyers()
     {
-        return new List<Customer>
+        var PaymentMethodsForBuyer1 = new List<PaymentMethod> { new PaymentMethod("777", "1234567891234567", "4567") };
+        var PaymentMethodsForBuyer2 = new List<PaymentMethod>
+        {
+            new PaymentMethod("555", "1231237891237890", "7890"),
+            new PaymentMethod("666", "4564567891233456", "3456")
+        };
+
+        return new List<Buyer>
             {
-                new Customer { FirstName = "John", LastName = "Doe", Email = "john.doe@example.com", PasswordHash = "hashedpassword" },
-                new Customer { FirstName = "Jane", LastName = "Smith", Email = "jane.smith@example.com", PasswordHash = "hashedpassword" },
+                new Buyer(Guid.NewGuid().ToString(), PaymentMethodsForBuyer1),
+                new Buyer(Guid.NewGuid().ToString(), PaymentMethodsForBuyer2),
             };
     }
 
@@ -160,14 +174,54 @@ public class TicketingContextSeed
             };
     }
 
-    private static IEnumerable<Ticket> GetPreconfiguredTickets()
+    private static IEnumerable<Ticket> GetPreconfiguredTickets(TicketingContext ticketingContext)
     {
         return new List<Ticket>
             {
-                new Ticket { EventId = 1, CustomerId = 1, SeatId = 1, PricesId = 1, VenueId = 1, PurchaseDate = DateTime.Now, IsPrinted = false },
-                new Ticket { EventId = 1, CustomerId = 2, SeatId = 2, PricesId = 2, VenueId = 1, PurchaseDate = DateTime.Now, IsPrinted = false },
-                new Ticket { EventId = 2, CustomerId = 1, SeatId = 3, PricesId = 3, VenueId = 2, PurchaseDate = DateTime.Now, IsPrinted = false },
-                new Ticket { EventId = 2, CustomerId = 2, SeatId = 4, PricesId = 4, VenueId = 2, PurchaseDate = DateTime.Now, IsPrinted = false },
+                new Ticket { EventId = 1, BuyerId = 1, PricesId = 1, VenueId = 1, PurchaseDate = DateTime.Now, IsPrinted = false, Seat = ticketingContext.Seats.FirstOrDefault(s => s.Id == 1) },
+                new Ticket { EventId = 2, BuyerId = 2, PricesId = 2, VenueId = 2, PurchaseDate = DateTime.Now, IsPrinted = false, Seat = ticketingContext.Seats.FirstOrDefault(s => s.Id == 8) },
+                new Ticket { EventId = 1, BuyerId = 1, PricesId = 3, VenueId = 1, PurchaseDate = DateTime.Now, IsPrinted = false, Seat = ticketingContext.Seats.FirstOrDefault(s => s.Id == 3) },
+                new Ticket { EventId = 2, BuyerId = 2, PricesId = 4, VenueId = 2, PurchaseDate = DateTime.Now, IsPrinted = false, Seat = ticketingContext.Seats.FirstOrDefault(s => s.Id == 9) }
+            };
+    }
+
+    private static IEnumerable<Seat> GetPreconfiguredSeats()
+    {
+        return new List<Seat>
+            {
+                new Seat { ManifestId = 1, SeatType = SeatTypes.Row, Row = "A", Number = 1, IsAvailable = true, SectionId = 1 },
+                new Seat { ManifestId = 1, SeatType = SeatTypes.Row, Row = "B", Number = 1, IsAvailable = false, SectionId = 1 },
+                new Seat { ManifestId = 1, SeatType = SeatTypes.Row, Row = "B", Number = 2, IsAvailable = true, SectionId = 3 },
+                new Seat { ManifestId = 1, SeatType = SeatTypes.Row, Row = "C", Number = 3, IsAvailable = true, SectionId = 5 },
+                new Seat { ManifestId = 1, SeatType = SeatTypes.Row, Row = "A", Number = 2, IsAvailable = true, SectionId = 5 },
+                new Seat { ManifestId = 1, SeatType = SeatTypes.Row, Row = "B", Number = 1, IsAvailable = false, SectionId = 5 },
+                new Seat { ManifestId = 1, SeatType = SeatTypes.Row, Row = "D", Number = 4, IsAvailable = true, SectionId = 7 },
+                new Seat { ManifestId = 2, SeatType = SeatTypes.Row, Row = "E", Number = 5, IsAvailable = true, SectionId = 2 },
+                new Seat { ManifestId = 2, SeatType = SeatTypes.Row, Row = "F", Number = 6, IsAvailable = true, SectionId = 4 },
+                new Seat { ManifestId = 2, SeatType = SeatTypes.Row, Row = "G", Number = 7, IsAvailable = true, SectionId = 6 },
+                new Seat { ManifestId = 2, SeatType = SeatTypes.Row, Row = "H", Number = 8, IsAvailable = true, SectionId = 8 },
+                new Seat { ManifestId = 2, SeatType = SeatTypes.Row, Row = "J", Number = 9, IsAvailable = true, SectionId = 9 },
+                new Seat { ManifestId = 1, SeatType = SeatTypes.GeneralAdmission, Row = null, Number = 5, SectionId = 10, IsAvailable = true },
+                new Seat { ManifestId = 2, SeatType = SeatTypes.GeneralAdmission, Row = null, Number = 6, SectionId = 11, IsAvailable = true },
+                new Seat { ManifestId = 2, SeatType = SeatTypes.GeneralAdmission, Row = null, Number = 7, SectionId = 11, IsAvailable = false }
+            };
+    }
+
+    private static IEnumerable<Section> GetPreconfiguredSections()
+    {
+        return new List<Section>
+            {
+                new Section { Name = "Section-A", VenueId = 1 },
+                new Section { Name = "Section-A", VenueId = 2 },
+                new Section { Name = "Section-B", VenueId = 1 },
+                new Section { Name = "Section-B", VenueId = 2 },
+                new Section { Name = "Section-C", VenueId = 1 },
+                new Section { Name = "Section-C", VenueId = 2 },
+                new Section { Name = "Section-D", VenueId = 1 },
+                new Section { Name = "Section-D", VenueId = 2 },
+                new Section { Name = "Section-E", VenueId = 2 },
+                new Section { Name = "Section-VIP", VenueId = 1 },
+                new Section { Name = "Section-VIP", VenueId = 2 },
             };
     }
 }
