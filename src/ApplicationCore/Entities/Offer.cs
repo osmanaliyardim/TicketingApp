@@ -1,6 +1,8 @@
-﻿namespace TicketingApp.ApplicationCore.Entities;
+﻿using TicketingApp.ApplicationCore.Interfaces;
 
-public class Offer : BaseEntity
+namespace TicketingApp.ApplicationCore.Entities;
+
+public class Offer : BaseEntity, IAggregateRoot
 {
     public string Description { get; set; }
 

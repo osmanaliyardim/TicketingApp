@@ -8,28 +8,28 @@ public class OfferConfiguration : IEntityTypeConfiguration<Offer>
 {
     public void Configure(EntityTypeBuilder<Offer> builder)
     {
-        builder.HasKey(t => t.Id);
+        builder.HasKey(o => o.Id);
 
-        builder.Property(t => t.Id)
+        builder.Property(o => o.Id)
            .UseHiLo("offer_hilo")
            .IsRequired();
 
-        builder.Property(t => t.StartDate)
+        builder.Property(o => o.StartDate)
             .IsRequired();
 
-        builder.Property(t => t.EndDate)
+        builder.Property(o => o.EndDate)
             .IsRequired();
 
-        builder.Property(t => t.Conditions)
+        builder.Property(o => o.Conditions)
             .IsRequired()
             .HasMaxLength(1250);
 
-        builder.Property(t => t.Description)
+        builder.Property(o => o.Description)
             .IsRequired()
             .HasMaxLength(750);
 
-        builder.HasOne(t => t.Event)
+        builder.HasOne(o => o.Event)
             .WithMany()
-            .HasForeignKey(ci => ci.EventId);
+            .HasForeignKey(o => o.EventId);
     }
 }

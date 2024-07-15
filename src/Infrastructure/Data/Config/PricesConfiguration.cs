@@ -8,22 +8,22 @@ public class PricesConfiguration : IEntityTypeConfiguration<Prices>
 {
     public void Configure(EntityTypeBuilder<Prices> builder)
     {
-        builder.HasKey(t => t.Id);
+        builder.HasKey(p => p.Id);
 
-        builder.Property(t => t.Id)
+        builder.Property(p => p.Id)
            .UseHiLo("prices_hilo")
            .IsRequired();
 
-        builder.Property(t => t.Price)
+        builder.Property(p => p.Price)
             .IsRequired()
             .HasColumnType("decimal(18,2)");
 
-        builder.Property(t => t.Category)
+        builder.Property(p => p.Category)
             .IsRequired()
             .HasMaxLength(50);
 
-        builder.HasOne(t => t.Offer)
+        builder.HasOne(p => p.Offer)
             .WithMany()
-            .HasForeignKey(ci => ci.OfferId);
+            .HasForeignKey(p => p.OfferId);
     }
 }

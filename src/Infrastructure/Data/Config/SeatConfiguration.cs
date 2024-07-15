@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 using TicketingApp.ApplicationCore.Entities;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using System.Reflection.Emit;
 
 namespace TicketingApp.Infrastructure.Data.Config;
 
@@ -8,30 +10,30 @@ public class SeatConfiguration : IEntityTypeConfiguration<Seat>
 {
     public void Configure(EntityTypeBuilder<Seat> builder)
     {
-        builder.HasKey(t => t.Id);
+        builder.HasKey(s => s.Id);
 
-        builder.Property(t => t.Id)
+        builder.Property(s => s.Id)
            .UseHiLo("seat_hilo")
            .IsRequired();
 
-        builder.Property(t => t.SeatType)
+        builder.Property(s => s.SeatType)
             .IsRequired();
 
-        builder.Property(t => t.IsAvailable)
+        builder.Property(s => s.IsAvailable)
             .IsRequired();
 
-        builder.Property(t => t.Number)
+        builder.Property(s => s.Number)
             .IsRequired();
 
-        builder.Property(t => t.Row)
+        builder.Property(s => s.Row)
             .HasMaxLength(25);
 
-        builder.Property(t => t.Section)
-            .IsRequired()
-            .HasMaxLength(10);
-
-        builder.HasOne(t => t.Manifest)
+        builder.HasOne(s => s.Manifest)
             .WithMany()
-            .HasForeignKey(ci => ci.ManifestId);
+            .HasForeignKey(s => s.ManifestId);
+
+        builder.HasOne(s => s.Section)
+            .WithMany()
+            .HasForeignKey(s => s.SectionId);
     }
 }

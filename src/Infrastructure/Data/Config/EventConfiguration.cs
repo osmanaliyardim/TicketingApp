@@ -8,28 +8,28 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
 {
     public void Configure(EntityTypeBuilder<Event> builder)
     {
-        builder.HasKey(t => t.Id);
+        builder.HasKey(e => e.Id);
 
-        builder.Property(t => t.Id)
+        builder.Property(e => e.Id)
            .UseHiLo("event_hilo")
            .IsRequired();
 
-        builder.Property(t => t.Date)
+        builder.Property(e => e.Date)
             .IsRequired();
 
-        builder.Property(t => t.Description)
+        builder.Property(e => e.Description)
             .IsRequired()
             .HasMaxLength(500);
 
-        builder.Property(t => t.Name)
+        builder.Property(e => e.Name)
             .IsRequired()
             .HasMaxLength(75);
 
-        builder.Property(t => t.Time)
+        builder.Property(e => e.Time)
             .IsRequired();
 
-        builder.HasOne(t => t.Venue)
+        builder.HasOne(e => e.Venue)
             .WithMany()
-            .HasForeignKey(ci => ci.VenueId);
+            .HasForeignKey(e => e.VenueId);
     }
 }

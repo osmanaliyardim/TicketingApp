@@ -8,20 +8,20 @@ public class VenueConfiguration : IEntityTypeConfiguration<Venue>
 {
     public void Configure(EntityTypeBuilder<Venue> builder)
     {
-        builder.HasKey(t => t.Id);
+        builder.HasKey(v => v.Id);
 
-        builder.Property(t => t.Id)
+        builder.Property(v => v.Id)
            .UseHiLo("venue_hilo")
            .IsRequired();
 
-        builder.Property(t => t.Name)
+        builder.Property(v => v.Name)
             .IsRequired()
             .HasMaxLength(75);
 
-        builder.Property(t => t.Capacity)
+        builder.Property(v => v.Capacity)
             .IsRequired();
 
-        builder.Property(t => t.Location)
+        builder.Property(v => v.Location)
             .IsRequired()
             .HasMaxLength(1250);
     } 
