@@ -4,7 +4,7 @@ using TicketingApp.ApplicationCore.Entities.BasketAggregate;
 using TicketingApp.ApplicationCore.Entities.OrderAggregate;
 using TicketingApp.ApplicationCore.Interfaces;
 using TicketingApp.ApplicationCore.Specifications;
-using TicketingApp.ApplicationCore.Interfaces;
+using TicketingApp.ApplicationCore.Extensions;
 
 namespace TicketingApp.ApplicationCore.Services;
 

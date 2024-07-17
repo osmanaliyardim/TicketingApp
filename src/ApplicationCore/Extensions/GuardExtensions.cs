@@ -1,7 +1,8 @@
-﻿using TicketingApp.ApplicationCore.Entities.BasketAggregate;
+﻿using Ardalis.GuardClauses;
+using TicketingApp.ApplicationCore.Entities.BasketAggregate;
 using TicketingApp.ApplicationCore.Exceptions;
 
-namespace Ardalis.GuardClauses;
+namespace TicketingApp.ApplicationCore.Extensions;
 
 public static class BasketGuards
 {

@@ -1,7 +1,6 @@
 ﻿using TicketingApp.ApplicationCore.Entities;
 using TicketingApp.ApplicationCore.Exceptions;
 using TicketingApp.ApplicationCore.Interfaces;
-using TicketingApp.ApplicationCore.Interfaces;
 
 namespace TicketingApp.ApplicationCore.Services;
 
@@ -9,16 +8,13 @@ public class PaymentService : IPaymentService
 {
     private readonly IRepository<Ticket> _ticketRepository;
     private readonly IRepository<Seat> _seatRepository;
-    private readonly IPaymentService _paymentService;
 
     public PaymentService(
         IRepository<Ticket> ticketRepository, 
-        IRepository<Seat> seatRepository, 
-        IPaymentService paymentService)
+        IRepository<Seat> seatRepository)
     {
         _ticketRepository = ticketRepository;
         _seatRepository = seatRepository;
-        _paymentService = paymentService;
     }
 
     public async Task UpdateSeatStatusAsync(int ticketId)

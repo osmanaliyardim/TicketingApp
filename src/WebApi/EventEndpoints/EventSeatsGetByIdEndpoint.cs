@@ -33,7 +33,7 @@ public class EventSeatsGetByIdEndpoint : IEndpoint<IResult, GetByIdEventSeatsReq
         var filterSpec = new SeatFilterBySectorIdSpec(request.SectionId);
 
         var seats = await seatRepository.ListAsync(filterSpec);
-        if (seats is null)
+        if (seats is null || !seats.Any())
             return Results.NotFound();
 
         response.Seats.AddRange(seats.Select(_mapper.Map<SeatDto>));

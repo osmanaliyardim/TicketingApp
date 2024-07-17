@@ -1,4 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using TicketingApp.ApplicationCore.Constants;
 using TicketingApp.ApplicationCore.Entities.OrderAggregate;
 using TicketingApp.ApplicationCore.Exceptions;
 using TicketingApp.ApplicationCore.Interfaces;
@@ -28,7 +31,7 @@ public class CreateOrderEndpoint : IEndpoint<IResult, CreateOrderRequest>
     public void AddRoute(IEndpointRouteBuilder app)
     {
         app.MapPut(ApiConstants.API_PREFIX + "/orders/carts/{cartId}/book",
-            //[Authorize(Roles = AuthorizationConstants.CUSTOMERS, AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)] 
+            [Authorize(Roles = AuthorizationConstants.CUSTOMERS, AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)] 
             async (CreateOrderRequest request) =>
             {
                 return await HandleAsync(request);
@@ -41,8 +44,6 @@ public class CreateOrderEndpoint : IEndpoint<IResult, CreateOrderRequest>
     {
         try
         {
-            //var response = new CreateOrderResponse(request.CorrelationId());
-
             var updateModel = request.Cart.Items.ToDictionary(b => b.Id.ToString(), b => b.Quantity);
 
             await _basketService.SetQuantities(request.Cart.Id, updateModel);
