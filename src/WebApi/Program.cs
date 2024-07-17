@@ -5,7 +5,6 @@ using TicketingApp.Infrastructure.Logging;
 using TicketingApp.WebApi;
 using TicketingApp.WebApi.Constants;
 using TicketingApp.WebApi.Middleware;
-using TicketingApp.ApplicationCore.Interfaces;
 using TicketingApp.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using System.Text;
@@ -62,10 +61,9 @@ builder.Services.AddAuthentication(config =>
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
 
 // Add services to the container.
-const string CORS_POLICY = "CorsPolicy";
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: CORS_POLICY,
+    options.AddPolicy(name: ApiConstants.CORS_POLICY,
         corsPolicyBuilder =>
         {
             corsPolicyBuilder.WithOrigins(
@@ -155,7 +153,7 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 
-app.UseCors(CORS_POLICY);
+app.UseCors(ApiConstants.CORS_POLICY);
 
 app.UseAuthentication();
 
