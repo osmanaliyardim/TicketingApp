@@ -1,6 +1,4 @@
-﻿using TicketingApp.ApplicationCore.Entities;
-
-namespace TicketingApp.WebApi.VenueEndpoints;
+﻿namespace TicketingApp.WebApi.VenueEndpoints;
 
 public class GetByIdVenueSectionsResponse : BaseResponse
 {

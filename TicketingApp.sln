@@ -19,9 +19,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApi", "src\WebApi\WebApi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "tests\UnitTests\UnitTests.csproj", "{F1948C51-0CA7-46AA-89F3-974A519A81D6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApiIntegrationTests", "tests\WebApiIntegrationTests\WebApiIntegrationTests.csproj", "{ED1F2A62-030C-4814-A1A9-CFBF7C6B8E2B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApiIntegrationTests", "tests\WebApiIntegrationTests\WebApiIntegrationTests.csproj", "{ED1F2A62-030C-4814-A1A9-CFBF7C6B8E2B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests", "tests\IntegrationTests\IntegrationTests.csproj", "{5403242B-3AD7-4F57-9B96-9BA9AC1B967F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntegrationTests", "tests\IntegrationTests\IntegrationTests.csproj", "{5403242B-3AD7-4F57-9B96-9BA9AC1B967F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

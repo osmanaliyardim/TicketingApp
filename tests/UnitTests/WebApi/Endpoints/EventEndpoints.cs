@@ -2,6 +2,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using TicketingApp.ApplicationCore.Entities;
 using TicketingApp.ApplicationCore.Interfaces;
@@ -14,16 +15,19 @@ public class EventEndpoints
 {
     private readonly Mock<IRepository<Event>> _eventRepositoryMock;
     private readonly Mock<IMapper> _mapperMock;
+    private readonly Mock<IMemoryCache> _cacheMock;
     private readonly EventListPagedEndpoint _endpoint;
     private readonly Mock<IRepository<Seat>> _seatRepositoryMock;
     private readonly EventSeatsGetByIdEndpoint _eventSeatsEndpoint;
+    private readonly HttpRequest httpRequest;
+    private readonly HttpResponse httpResponse;
 
     public EventEndpoints()
     {
         _eventRepositoryMock = new Mock<IRepository<Event>>();
         _seatRepositoryMock = new Mock<IRepository<Seat>>();
         _mapperMock = new Mock<IMapper>();
-        _endpoint = new EventListPagedEndpoint(_mapperMock.Object);
+        _endpoint = new EventListPagedEndpoint(_mapperMock.Object, _cacheMock.Object);
         _eventSeatsEndpoint = new EventSeatsGetByIdEndpoint(_mapperMock.Object);
     }
 
@@ -31,17 +35,20 @@ public class EventEndpoints
     public async Task HandleAsync_ReturnsOkResult_WithExpectedResponse()
     {
         // Arrange
-        var request = new ListPagedEventRequest(10, 1, 1);
+        var request = new ListPagedEventRequest(httpRequest, httpResponse, 10, 1, 1);
         var events = new List<Event> { new Event("Event 1 description", "Event 1", DateTime.UtcNow.AddDays(1), TimeSpan.FromHours(2), 1) };
         var eventDtos = events.Select(e => new EventDto { Name = e.Name, Date = e.Date, Description = e.Description, Time = e.Time, VenueId = e.VenueId }).ToList();
         _eventRepositoryMock.Setup(repo => repo.CountAsync(It.IsAny<EventFilterSpecification>(), It.IsAny<CancellationToken>())).ReturnsAsync(events.Count);
         _eventRepositoryMock.Setup(repo => repo.ListAsync(It.IsAny<EventFilterPaginatedSpecification>(), It.IsAny<CancellationToken>())).ReturnsAsync(events);
         _mapperMock.Setup(m => m.Map<EventDto>(It.IsAny<Event>()))
-            .Returns((Event src) => 
-                new EventDto { 
-                    Name = src.Name, Date = src.Date, 
-                    Description = src.Description, 
-                    Time = src.Time, VenueId = src.VenueId 
+            .Returns((Event src) =>
+                new EventDto
+                {
+                    Name = src.Name,
+                    Date = src.Date,
+                    Description = src.Description,
+                    Time = src.Time,
+                    VenueId = src.VenueId
                 });
 
         // Act
@@ -60,7 +67,7 @@ public class EventEndpoints
     public async Task HandleAsync_SetsPageCountCorrectly()
     {
         // Arrange
-        var request = new ListPagedEventRequest(10, 1, 1);
+        var request = new ListPagedEventRequest(httpRequest, httpResponse, 10, 1, 1);
         _eventRepositoryMock.Setup(repo => repo.CountAsync(It.IsAny<EventFilterSpecification>(), It.IsAny<CancellationToken>())).ReturnsAsync(25);
         _eventRepositoryMock.Setup(repo => repo.ListAsync(It.IsAny<EventFilterPaginatedSpecification>(), It.IsAny<CancellationToken>())).ReturnsAsync(new List<Event>());
 
@@ -79,7 +86,7 @@ public class EventEndpoints
     public async Task HandleAsync_ReturnsZeroPageCount_WhenNoItems()
     {
         // Arrange
-        var request = new ListPagedEventRequest(10, 1, 1);
+        var request = new ListPagedEventRequest(httpRequest, httpResponse, 10, 1, 1);
         _eventRepositoryMock.Setup(repo => repo.CountAsync(It.IsAny<EventFilterSpecification>(), It.IsAny<CancellationToken>())).ReturnsAsync(0);
         _eventRepositoryMock.Setup(repo => repo.ListAsync(It.IsAny<EventFilterPaginatedSpecification>(), It.IsAny<CancellationToken>())).ReturnsAsync(new List<Event>());
 
@@ -101,18 +108,27 @@ public class EventEndpoints
         // Arrange
         var request = new GetByIdEventSeatsRequest(1, 1);
         var seats = new List<Seat> { new Seat { ManifestId = 1, SeatType = SeatTypes.Row, Row = "A", Number = 1, IsAvailable = true, SectionId = 1 } };
-        var seatDtos = seats.Select(s => 
-            new SeatDto { 
-                Number = s.Number, IsAvailable = s.IsAvailable, 
-                ManifestId = s.ManifestId, Row = s.Row, 
-                SeatType = s.SeatType, SectionId = s.SectionId }).ToList();
+        var seatDtos = seats.Select(s =>
+            new SeatDto
+            {
+                Number = s.Number,
+                IsAvailable = s.IsAvailable,
+                ManifestId = s.ManifestId,
+                Row = s.Row,
+                SeatType = s.SeatType,
+                SectionId = s.SectionId
+            }).ToList();
         _seatRepositoryMock.Setup(repo => repo.ListAsync(It.IsAny<SeatFilterBySectorIdSpec>(), It.IsAny<CancellationToken>())).ReturnsAsync(seats);
         _mapperMock.Setup(m => m.Map<SeatDto>(It.IsAny<Seat>()))
-            .Returns((Seat src) => 
-                new SeatDto { 
-                    Number = src.Number, IsAvailable = src.IsAvailable, 
-                    ManifestId = src.ManifestId, Row = src.Row, 
-                    SeatType = src.SeatType, SectionId = src.SectionId 
+            .Returns((Seat src) =>
+                new SeatDto
+                {
+                    Number = src.Number,
+                    IsAvailable = src.IsAvailable,
+                    ManifestId = src.ManifestId,
+                    Row = src.Row,
+                    SeatType = src.SeatType,
+                    SectionId = src.SectionId
                 });
 
         // Act
