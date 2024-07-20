@@ -17,7 +17,7 @@ public class TicketingContext : DbContext
     public DbSet<Offer> Offers { get; set; }
     public DbSet<Prices> Prices { get; set; }
     public DbSet<Seat> Seats { get; set; }
-    public DbSet<ApplicationCore.Entities.Ticket> Tickets { get; set; }
+    public DbSet<Ticket> Tickets { get; set; }
     public DbSet<Venue> Venues { get; set; }
     public DbSet<Buyer> Buyers { get; set; }
     //public DbSet<PaymentMethod> PaymentMethods { get; set; }

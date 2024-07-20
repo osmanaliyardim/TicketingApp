@@ -115,6 +115,8 @@ builder.Services.AddSwaggerGen(c =>
             });
 });
 
+builder.Services.AddMemoryCache();
+
 var app = builder.Build();
 
 app.Logger.LogInformation("WebApi App created...");

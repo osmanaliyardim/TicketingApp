@@ -19,6 +19,14 @@ public class BasketItem : BaseEntity
         SetQuantity(quantity);
     }
 
+    public BasketItem(int eventId, int quantity, decimal unitPrice, int basketId)
+    {
+        EventId = eventId;
+        UnitPrice = unitPrice;
+        SetQuantity(quantity);
+        BasketId = basketId;
+    }
+
     public void AddQuantity(int quantity)
     {
         Guard.Against.OutOfRange(quantity, nameof(quantity), 0, int.MaxValue);

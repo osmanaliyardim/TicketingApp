@@ -1,6 +1,4 @@
-﻿using TicketingApp.WebApi.CartEndpoints;
-
-namespace TicketingApp.WebApi.PaymentEndpoints;
+﻿namespace TicketingApp.WebApi.PaymentEndpoints;
 
 public class UpdateFailedPaymentStatusRequest : BaseRequest
 {

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using TicketingApp.ApplicationCore.Entities;
 using TicketingApp.ApplicationCore.Entities.BuyerAggregate;
+using TicketingApp.ApplicationCore.Entities.BasketAggregate;
 
 namespace TicketingApp.Infrastructure.Data;
 
@@ -79,6 +80,18 @@ public class TicketingContextSeed
                 await ticketingContext.Tickets.AddRangeAsync(GetPreconfiguredTickets(ticketingContext));
                 await ticketingContext.SaveChangesAsync();
             }
+
+            if (!await ticketingContext.Baskets.AnyAsync())
+            {
+                await ticketingContext.Baskets.AddRangeAsync(GetPreconfiguredBaskets());
+                await ticketingContext.SaveChangesAsync();
+            }
+
+            if (!await ticketingContext.BasketItems.AnyAsync())
+            {
+                await ticketingContext.BasketItems.AddRangeAsync(GetPreconfiguredBasketItems());
+                await ticketingContext.SaveChangesAsync();
+            }
         }
         catch (Exception ex)
         {
@@ -90,6 +103,22 @@ public class TicketingContextSeed
             await SeedAsync(ticketingContext, logger, retryForAvailability);
             throw;
         }
+    }
+
+    private static IEnumerable<Basket> GetPreconfiguredBaskets()
+    {
+        return new List<Basket>
+            {
+                new Basket("1")
+            };
+    }
+
+    private static IEnumerable<BasketItem> GetPreconfiguredBasketItems()
+    {
+        return new List<BasketItem>
+            {
+                new BasketItem(1, 2, 10, 1015)
+            };
     }
 
     private static IEnumerable<Venue> GetPreconfiguredVenues()

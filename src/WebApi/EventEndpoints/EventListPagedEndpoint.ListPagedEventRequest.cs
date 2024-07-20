@@ -8,10 +8,16 @@ public class ListPagedEventRequest : BaseRequest
 
     public int? VenueId { get; init; }
 
-    public ListPagedEventRequest(int? pageSize, int? pageIndex, int? venueId)
+    public HttpRequest HttpRequest { get; init; }
+
+    public HttpResponse HttpResponse { get; init; }
+
+    public ListPagedEventRequest(HttpRequest httpRequest, HttpResponse httpResponse, int? pageSize, int? pageIndex, int? venueId)
     {
         PageSize = pageSize ?? 0;
         PageIndex = pageIndex ?? 0;
         VenueId = venueId;
+        HttpRequest = httpRequest;
+        HttpResponse = httpResponse;
     }
 }

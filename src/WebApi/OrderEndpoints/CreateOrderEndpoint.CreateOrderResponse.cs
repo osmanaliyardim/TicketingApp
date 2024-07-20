@@ -1,6 +1,4 @@
-﻿using TicketingApp.WebApi.CartEndpoints;
-
-namespace TicketingApp.WebApi.OrderEndpoints;
+﻿namespace TicketingApp.WebApi.OrderEndpoints;
 
 public class CreateOrderResponse : BaseResponse
 {
