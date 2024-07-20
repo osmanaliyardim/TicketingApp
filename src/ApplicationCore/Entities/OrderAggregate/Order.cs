@@ -1,4 +1,5 @@
 ﻿using Ardalis.GuardClauses;
+using System.ComponentModel.DataAnnotations;
 using TicketingApp.ApplicationCore.Interfaces;
 
 namespace TicketingApp.ApplicationCore.Entities.OrderAggregate;
@@ -27,6 +28,10 @@ public class Order : BaseEntity, IAggregateRoot
     private readonly List<OrderItem> _orderItems = new List<OrderItem>();
 
     public IReadOnlyCollection<OrderItem> OrderItems => _orderItems.AsReadOnly();
+
+    // Concurrency token for optimistic transactions
+    [Timestamp]
+    public byte[] RowVersion { get; set; }
 
     public decimal Total()
     {
