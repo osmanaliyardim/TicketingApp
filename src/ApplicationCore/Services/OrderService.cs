@@ -6,6 +6,7 @@ using TicketingApp.ApplicationCore.Interfaces;
 using TicketingApp.ApplicationCore.Specifications;
 using TicketingApp.ApplicationCore.Extensions;
 using Microsoft.EntityFrameworkCore;
+using TicketingApp.ApplicationCore.Constants;
 
 namespace TicketingApp.ApplicationCore.Services;
 
@@ -14,6 +15,7 @@ public class OrderService : IOrderService
     private readonly IRepository<Order> _orderRepository;
     private readonly IRepository<Basket> _basketRepository;
     private readonly IRepository<Event> _eventRepository;
+    private readonly EventPublisher _eventPublisher;
 
     public OrderService(IRepository<Basket> basketRepository,
         IRepository<Event> eventRepository,
@@ -22,6 +24,7 @@ public class OrderService : IOrderService
         _orderRepository = orderRepository;
         _basketRepository = basketRepository;
         _eventRepository = eventRepository;
+        _eventPublisher = new EventPublisher(CloudServiceConstants.SERVICE_BUS_CONNSTR, CloudServiceConstants.SERVICE_BUS_QUEUE_NAME);
     }
 
     public async Task CreateOrderAsync(int basketId, Address shippingAddress)
@@ -50,11 +53,24 @@ public class OrderService : IOrderService
         try
         {
             await _orderRepository.AddAsync(order);
+
+            // Send Order To Azure Service Bus
+            var orderedItems = new OrderedItems<Order>(Guid.NewGuid().ToString(), order);
+            await SendOrderEventToServiceBusAsync(orderedItems);
         }
         catch (DbUpdateConcurrencyException ex)
         {
             // Handle concurrency exception
             throw new Exception("A concurrency error occurred while creating the order. Please try again.", ex);
         }
+    }
+
+    private async Task SendOrderEventToServiceBusAsync(OrderedItems<Order> order)
+    {
+        // Publish order event
+        await _eventPublisher.PublishEventAsync(order);
+
+        // Dispose of the EventPublisher
+        await _eventPublisher.DisposeAsync();
     }
 }
